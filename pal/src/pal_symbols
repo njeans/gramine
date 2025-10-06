@@ -50,6 +50,7 @@ PalDebugDescribeLocation
 PalAttestationReport
 PalAttestationQuote
 PalGetSpecialKey
+PalGetCPUSVN
 PalDebugLog
 PalGetPalPublicState
 PalGetLazyCommitPages

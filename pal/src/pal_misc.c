@@ -52,6 +52,10 @@ int PalGetSpecialKey(const char* name, void* key, size_t* key_size) {
     return _PalGetSpecialKey(name, key, key_size);
 }
 
+int PalGetCPUSVN(void* cpu_svn, size_t* cpu_svn_size) {
+    return _PalGetCPUSVN(cpu_svn, cpu_svn_size);
+}
+
 void PalGetLazyCommitPages(uintptr_t addr, size_t size, uint8_t* bitvector) {
     if (!addr || !IS_ALLOC_ALIGNED_PTR(addr) || !size || !IS_ALLOC_ALIGNED(size) || !bitvector) {
         BUG();

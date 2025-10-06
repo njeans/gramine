@@ -1160,6 +1160,8 @@ or disabling of recovery for different mounted files or directories. Note that
 enabling this feature can negatively impact performance, as it writes to a
 second shadow file for later recovery purposes on each flush.
 
+// nerla todo document allow_tcb_migration parameter
+
 .. _untrusted-shared-memory:
 
 Untrusted shared memory

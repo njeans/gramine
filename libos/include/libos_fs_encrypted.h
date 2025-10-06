@@ -24,6 +24,12 @@
 
 #define RECOVERY_FILE_URI_SUFFIX ".gramine.recovery"
 
+#define TCB_INFO_PERM_RW PERM_rw_rw_r__
+
+#define TCB_INFO_FILE_NAME "gramine.tcb_info"
+
+#define CPU_SVN_SIZE 16
+
 /*
  * Represents a named key for opening files. The key might not be set yet: value of a key can be
  * specified in the manifest, or set using `update_encrypted_files_key`. Before the key is set,
@@ -183,3 +189,5 @@ int encrypted_file_get_size(struct libos_encrypted_file* enc, file_off_t* out_si
 int encrypted_file_set_size(struct libos_encrypted_file* enc, file_off_t size);
 
 int parse_pf_key(const char* key_str, pf_key_t* pf_key);
+
+int handle_tcb_migration(const char * uri);

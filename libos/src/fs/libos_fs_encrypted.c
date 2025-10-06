@@ -280,6 +280,67 @@ int parse_pf_key(const char* key_str, pf_key_t* pf_key) {
     return 0;
 }
 
+int handle_tcb_migration(const char * uri) {
+    PAL_HANDLE tcb_info_file_pal_handle = NULL;
+    int ret;
+
+    uint8_t current_cpu_svn[CPU_SVN_SIZE];
+    size_t cpu_svn_size = sizeof(current_cpu_svn);
+    ret = PalGetCPUSVN(&current_cpu_svn, &cpu_svn_size);
+    if (ret < 0) {
+        log_warning("PalGetCPUSVN failed: %s", pal_strerror(ret));
+        return pal_to_unix_errno(ret);
+    }
+
+    for (int i = 0; i < CPU_SVN_SIZE; i++) {
+        log_debug("cpu_svn[%d] = 0x%02x", i, current_cpu_svn[i]);
+    }
+
+    char *tcb_info_uri = alloc_concat(uri, -1, TCB_INFO_FILE_NAME, -1);
+    log_debug("Opening TCB info file URI: %s", tcb_info_uri);
+    ret = PalStreamOpen(tcb_info_uri, PAL_ACCESS_RDWR, TCB_INFO_PERM_RW,
+                        PAL_CREATE_TRY, /*options=*/0, &tcb_info_file_pal_handle);
+    free(tcb_info_uri);
+    if (ret < 0) {
+        log_warning("tcb_info PalStreamOpen failed: %s", pal_strerror(ret));
+        ret = pal_to_unix_errno(ret);
+        return ret;
+    }
+    PAL_STREAM_ATTR pal_attr;
+    ret = PalStreamAttributesQueryByHandle(tcb_info_file_pal_handle, &pal_attr);
+    if (ret < 0) {
+        log_warning("tcb_info PalStreamAttributesQueryByHandle failed: %s", pal_strerror(ret));
+        ret = pal_to_unix_errno(ret);
+        goto out;
+    }
+    if ( pal_attr.pending_size == 0 ) {
+        log_debug("tcb_info file is empty - writing current CPU SVN");
+        ret = write_exact(tcb_info_file_pal_handle, current_cpu_svn, CPU_SVN_SIZE);
+        if (ret < 0) {
+            log_warning("writing to tcb_info file failed");
+            goto out;
+        }
+    } else {
+        uint8_t saved_cpu_svn[CPU_SVN_SIZE] = {0};
+        ret = read_exact(tcb_info_file_pal_handle, saved_cpu_svn, CPU_SVN_SIZE);
+        if (ret < 0) {
+            log_warning("reading from tcb_info file failed");
+            goto out;
+        }
+        if (memcmp(&current_cpu_svn, &saved_cpu_svn, CPU_SVN_SIZE) != 0 ) {
+            log_warning("CPU SVN has changed - doing TCB migration for %s", uri);
+            // nerla todo do the migration
+
+        } else {
+            log_debug("CPU SVN has not changed - no TCB migration needed for %s", uri);
+        }
+    }
+out:
+    if (tcb_info_file_pal_handle)
+        PalObjectDestroy(tcb_info_file_pal_handle);
+    return ret;
+}
+
 static void encrypted_file_internal_close(struct libos_encrypted_file* enc) {
     assert(enc->pf);
 

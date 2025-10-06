@@ -40,6 +40,7 @@
 #include "libos_fs.h"
 #include "libos_fs_encrypted.h"
 #include "libos_vma.h"
+#include "pal.h"
 #include "perm.h"
 #include "stat.h"
 #include "toml_utils.h"
@@ -63,13 +64,33 @@ static int chroot_encrypted_mount(struct libos_mount_params* params, void** moun
 
     const char* key_name = params->key_name ?: "default";
 
+
+    // nerla todo do migration if I can
+    if (params->allow_tcb_migration) {
+        if (!strcmp(key_name, PAL_KEY_NAME_SGX_MRENCLAVE) ||
+            !strcmp(key_name, PAL_KEY_NAME_SGX_MRSIGNER)) {
+            log_warning("TCB migration will be supported for %s", params->uri);
+            int ret = handle_tcb_migration(params->uri);
+            if (ret < 0) {
+                log_error("TCB migration failed for %s", params->uri);
+                return ret;
+            }
+
+        } else {
+            log_warning("TCB migration is only supported for keys named %s or %s, ignoring "
+                        "allow_tcb_migration for %s",
+                        PAL_KEY_NAME_SGX_MRENCLAVE, PAL_KEY_NAME_SGX_MRSIGNER, params->uri);
+        }
+    }
+
     struct libos_encrypted_files_key* key;
     int ret = get_or_create_encrypted_files_key(key_name, &key);
     if (ret < 0)
         return ret;
 
     *mount_data = key;
-    return 0;
+    return ret;
+
 }
 
 static ssize_t chroot_encrypted_checkpoint(void** checkpoint, void* mount_data) {

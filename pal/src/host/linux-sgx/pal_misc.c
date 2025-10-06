@@ -753,6 +753,17 @@ int _PalGetSpecialKey(const char* name, void* key, size_t* key_size) {
     return 0;
 }
 
+int _PalGetCPUSVN(void* cpu_svn, size_t* cpu_svn_size) {
+    if (*cpu_svn_size < sizeof(sgx_cpu_svn_t))
+        return PAL_ERROR_INVAL;
+
+    sgx_cpu_svn_t svn = g_pal_linuxsgx_state.enclave_info.cpu_svn;
+
+    memcpy(cpu_svn, &svn, sizeof(sgx_cpu_svn_t));
+    *cpu_svn_size = sizeof(sgx_cpu_svn_t);
+    return 0;
+}
+
 ssize_t read_file_buffer(const char* filename, char* buf, size_t buf_size) {
     int fd;
 

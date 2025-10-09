@@ -18,6 +18,7 @@ fs.mounts = [
   { type = "encrypted", path = "/tmp_enc", uri = "file:tmp_enc", key_name = "my_custom_key" },
   { type = "encrypted", path = "/tmp_enc/mrenclaves", uri = "file:tmp_enc/mrenclaves", key_name = "_sgx_mrenclave" },
   { type = "encrypted", path = "/tmp_enc/mrsigners", uri = "file:tmp_enc/mrsigners", key_name = "_sgx_mrsigner" },
+  { type = "encrypted", path = "/tmp_enc/tcbmigrate", uri = "file:tmp_enc/tcbmigrate", key_name = "_sgx_mrenclave", allow_tcb_migration = true },
 ]
 
 sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '16' }}

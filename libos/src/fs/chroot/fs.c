@@ -705,7 +705,8 @@ int chroot_readdir(struct libos_dentry* dent, readdir_callback_t callback, void*
     ret = 0;
 
 out:
-    free(buf);
+    if (buf)
+        free(buf);
     PalObjectDestroy(palhdl);
     return ret;
 }

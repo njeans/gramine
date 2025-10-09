@@ -64,13 +64,11 @@ static int chroot_encrypted_mount(struct libos_mount_params* params, void** moun
 
     const char* key_name = params->key_name ?: "default";
 
-
-    // nerla todo do migration if I can
     if (params->allow_tcb_migration) {
         if (!strcmp(key_name, PAL_KEY_NAME_SGX_MRENCLAVE) ||
             !strcmp(key_name, PAL_KEY_NAME_SGX_MRSIGNER)) {
             log_warning("TCB migration will be supported for %s", params->uri);
-            int ret = handle_tcb_migration(params->uri);
+            int ret = handle_tcb_migration(params->uri, key_name);
             if (ret < 0) {
                 log_error("TCB migration failed for %s", params->uri);
                 return ret;

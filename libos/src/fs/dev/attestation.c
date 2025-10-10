@@ -16,6 +16,7 @@
  */
 
 #include "api.h"
+#include "hex.h"
 #include "libos_fs_encrypted.h"
 #include "libos_fs_pseudo.h"
 #include "pal.h"
@@ -305,56 +306,14 @@ static bool key_name_exists(struct libos_dentry* parent, const char* name) {
     return key != NULL;
 }
 
-
-/* Parse hex string to buffer */
-static int parse_hex(char *hexString, unsigned char *byteArray, size_t byteArraySize) {
-    size_t hexStringLen = strlen(hexString);
-
-    // Ensure the hex string has an even number of characters
-    if (hexStringLen % 2 != 0) {
-        log_error("Error: Hex string must have an even number of characters.\n");
-        return -1;
-    }
-
-    // Calculate the expected size of the byte array
-    size_t expectedByteArrayLen = hexStringLen / 2;
-
-    // Check if the provided byteArray can hold the converted bytes
-    if (byteArraySize < expectedByteArrayLen) {
-        log_error("Error: Byte array is too small to hold the converted hex string.\n");
-        return -1;
-    }
-
-    // Loop through the hex string, taking two characters at a time
-    for (size_t i = 0; i < hexStringLen; i += 2) {
-        char hexPair[3] = {0}; // Buffer for two hex characters + null terminator
-        memcpy(hexPair, hexString + i, 2);
-        hexPair[2] = '\0'; // Null-terminate the pair
-
-        // Convert the hex pair to an unsigned char (byte)
-        // Using strtol for robustness and error checking
-        char *endptr;
-        long val = strtol(hexPair, &endptr, 16);
-
-        // Check for conversion errors
-        if (*endptr != '\0' || val < 0 || val > 255) {
-            log_error("Error: Invalid hex character(s) encountered: %s\n", hexPair);
-            return -1;
-        }
-        byteArray[i / 2] = (unsigned char)val;
-    }
-    return 0; // Success
-}
-
 static bool key_name_exists_svn(struct libos_dentry* parent, const char* name) {
     __UNUSED(parent);
-    // log_debug("key_name_exists_svn: for %s/%s", parent->name, name);
     if (strlen(name) != 2 * sizeof(cpu_svn_t)) {
         log_warning("key_name_exists_svn: invalid key name length %zu of %s, expected %zu", strlen(name), name, 2 * sizeof(cpu_svn_t));
         return false;
     }
     cpu_svn_t cpu_svn;
-    if (parse_hex((char *)name, cpu_svn, sizeof(cpu_svn_t)) < 0) {
+    if (!hex2bytes((char *)name, strlen(name), &cpu_svn, sizeof(cpu_svn_t))) {
         log_warning("key_name_exists_svn: invalid key name format");
         return false;
     }
@@ -385,7 +344,6 @@ static int key_list_names_svn(struct libos_dentry* parent, readdir_callback_t ca
     __UNUSED(parent);
     __UNUSED(callback);
     __UNUSED(arg);
-    // log_debug("key_list_names_svn: for %s", parent->name);
     return 0;
 }
 
@@ -412,54 +370,14 @@ static int key_load(struct libos_dentry* dent, char** out_data, size_t* out_size
     return 0;
 }
 
-// static int key_load_svn(struct libos_dentry* dent, char** out_data, size_t* out_size) {
-//     log_debug("key_load_svn: loading key for %s", dent->name);
-
-//     int ret;
-
-//     char * key_name = dent->parent->name;
-//     struct libos_encrypted_files_key* key = NULL;
-//     key = calloc(1, sizeof(*key));
-//     if (!key) {
-//         log_error("Cannot allocate memory for key");
-//         ret = -ENOMEM;
-//         goto out;
-//     }
-//     ret = create_encrypted_files_key_for_svn(key_name, &g_key_cpu_svn, &key);
-//     if (ret < 0) {
-//         log_error("Cannot create or get key for SVN");
-//         goto out;
-//     }
-//     pf_key_t pf_key;
-//     bool is_set = read_encrypted_files_key(key, &pf_key);
-
-//     if (is_set) {
-//         char* buf = malloc(sizeof(pf_key));
-//         if (!buf)
-//             return -ENOMEM;
-//         memcpy(buf, &pf_key, sizeof(pf_key));
-
-//         *out_data = buf;
-//         *out_size = sizeof(pf_key);
-//     } else {
-//         *out_data = NULL;
-//         *out_size = 0;
-//     }
-//     ret = 0;
-// out:
-//     if (key)
-//         free(key);
-//     return ret;
-// }
-
-static int key_load_svn2(struct libos_dentry* dent, char** out_data, size_t* out_size) {
-    // log_debug("key_load_svn2: loading key for %s/%s", dent->parent->name, dent->name);
+static int key_load_svn(struct libos_dentry* dent, char** out_data, size_t* out_size) {
     if (strlen(dent->name) != 2 * sizeof(cpu_svn_t)) {
         log_warning("key_name_exists_svn: invalid key name length");
         return false;
     }
     cpu_svn_t cpu_svn;
-    if (parse_hex((char *)dent->name, cpu_svn, sizeof(cpu_svn_t)) < 0) {
+
+    if (!hex2bytes((char *)dent->name, strlen(dent->name), &cpu_svn, sizeof(cpu_svn_t))) {
         log_warning("key_name_exists_svn: invalid key name format");
         return false;
     }
@@ -563,20 +481,11 @@ static int init_sgx_attestation(struct pseudo_node* attestation, struct pseudo_n
     pseudo_add_str(keys, PAL_KEY_NAME_SGX_MRENCLAVE, &key_load);
     pseudo_add_str(keys, PAL_KEY_NAME_SGX_MRSIGNER, &key_load);
 
-    // struct pseudo_node* keys_svn = pseudo_add_dir(attestation, "keys_svn");
-    // pseudo_add_str(keys_svn, PAL_KEY_NAME_SGX_MRENCLAVE, &key_load_svn);
-    // pseudo_add_str(keys_svn, PAL_KEY_NAME_SGX_MRSIGNER, &key_load_svn);
-
-    // log_debug("Added CPU SVN file sealing keys to /dev/attestation/key_cpu_svn");
-    // struct pseudo_node* key_cpu_svn = pseudo_add_str(attestation, "key_cpu_svn", NULL);
-    // key_cpu_svn->perm = PSEUDO_PERM_FILE_RW;
-    // key_cpu_svn->str.save = &key_cpu_svn_save;
-
-    struct pseudo_node* keys_svn2 = pseudo_add_dir(attestation, "keys_svn2");
-    struct pseudo_node* keys_svn2_mrenclave_key = pseudo_add_dir(keys_svn2, PAL_KEY_NAME_SGX_MRENCLAVE);
-    struct pseudo_node* key_cpu_svn2 = pseudo_add_str(keys_svn2_mrenclave_key, NULL, &key_load_svn2);
-    key_cpu_svn2->name_exists = &key_name_exists_svn;
-    key_cpu_svn2->list_names = &key_list_names_svn;
+    struct pseudo_node* keys_svn = pseudo_add_dir(attestation, "keys_svn");
+    struct pseudo_node* keys_svn_mrenclave_key = pseudo_add_dir(keys_svn, PAL_KEY_NAME_SGX_MRENCLAVE);
+    struct pseudo_node* key_cpu_svn = pseudo_add_str(keys_svn_mrenclave_key, NULL, &key_load_svn);
+    key_cpu_svn->name_exists = &key_name_exists_svn;
+    key_cpu_svn->list_names = &key_list_names_svn;
 
     if (!strcmp(g_pal_public_state->attestation_type, "none")) {
         log_debug("host is Linux-SGX and remote attestation type is 'none', skipping "

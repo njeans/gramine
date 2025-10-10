@@ -61,28 +61,26 @@ static int chroot_encrypted_mount(struct libos_mount_params* params, void** moun
         log_error("'%s' is invalid file URI", params->uri);
         return -EINVAL;
     }
-
+    int ret;
     const char* key_name = params->key_name ?: "default";
 
     if (params->allow_tcb_migration) {
-        if (!strcmp(key_name, PAL_KEY_NAME_SGX_MRENCLAVE) ||
-            !strcmp(key_name, PAL_KEY_NAME_SGX_MRSIGNER)) {
+        if (!strcmp(key_name, PAL_KEY_NAME_SGX_MRENCLAVE)) {
             log_warning("TCB migration will be supported for %s", params->uri);
-            int ret = handle_tcb_migration(params->uri, key_name);
+            ret = handle_tcb_migration(params->uri, key_name);
             if (ret < 0) {
                 log_error("TCB migration failed for %s", params->uri);
                 return ret;
             }
 
         } else {
-            log_warning("TCB migration is only supported for keys named %s or %s, ignoring "
+            log_warning("TCB migration is only supported for keys named %s, ignoring "
                         "allow_tcb_migration for %s",
-                        PAL_KEY_NAME_SGX_MRENCLAVE, PAL_KEY_NAME_SGX_MRSIGNER, params->uri);
+                        PAL_KEY_NAME_SGX_MRENCLAVE, params->uri);
         }
     }
-
     struct libos_encrypted_files_key* key;
-    int ret = get_or_create_encrypted_files_key(key_name, &key);
+    ret = get_or_create_encrypted_files_key(key_name, &key);
     if (ret < 0)
         return ret;
 

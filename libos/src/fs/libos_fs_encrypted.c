@@ -153,6 +153,7 @@ static void cb_debug(const char* msg) {
     log_debug("%s", msg);
 }
 #endif
+
 /*
  * The `pal_handle` parameter is used if this is a checkpointed file, and we have received the PAL
  * handle from the parent process. Note that in this case, it would not be safe to attempt opening
@@ -612,9 +613,14 @@ static int do_migrate(const char * uri, cpu_svn_t* old_cpu_svn, const char * key
 out:
     if (dir_entry_uri)
         free(dir_entry_uri);
-    if (old_key)
+    if (old_key) {
+        if (old_key->name)
+            free(old_key->name);
         free(old_key);
-    if (new_key)
+    }
+    if (new_key) {
+        if (new_key->name)
+            free(new_key->name);
         free(new_key);
     return ret;
 }
@@ -851,13 +857,15 @@ int get_or_create_encrypted_files_key(const char* name,
 
         if (ret == 0) {
             if (size != sizeof(pf_key)) {
+                log_debug("PalGetSpecialKey(\"%s\") returned wrong size: %zu", name, size);
                 ret = -EINVAL;
                 goto out;
             }
+            log_debug("Successfully retrieved special key \"%s\"", name);
             memcpy(&key->pf_key, &pf_key, sizeof(pf_key));
             key->is_set = true;
         } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-            log_warning("Special key \"%s\" is not supported by current PAL. Mounts using this key "
+            log_debug("Special key \"%s\" is not supported by current PAL. Mounts using this key "
                       "will not work.", name);
             /* proceed without setting value */
         } else {
@@ -900,13 +908,15 @@ int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
 
     if (ret == 0) {
         if (size != sizeof(pf_key)) {
+            log_debug("PalGetSpecialKeyForSVN(\"%s\") returned wrong size: %zu", name, size);
             ret = -EINVAL;
             goto out;
         }
+        log_debug("Successfully retrieved special key for svn \"%s\"", name);
         memcpy(&key->pf_key, &pf_key, sizeof(pf_key));
         key->is_set = true;
     } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-        log_warning("Special key \"%s\" is not supported by current PAL. Mounts using this key "
+        log_debug("Special key \"%s\" is not supported by current PAL. Mounts using this key "
                     "will not work.", name);
         /* proceed without setting value */
     } else {

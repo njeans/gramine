@@ -120,7 +120,6 @@ int main(int argc, char** argv) {
         verify_key_exists("SGX sealing keys", MRSIGNER_KEY_PATH);
         fail_write_key("SGX sealing keys", MRENCLAVE_KEY_PATH);
         fail_write_key("SGX sealing keys", MRSIGNER_KEY_PATH);
-        verify_key_exists("SGX sealing keys", MRENCLAVE_KEY_PATH);
         unsigned char cpu_svn[SVN_SIZE];
         if (read_file_binary(CPU_SVN_PATH, cpu_svn, SVN_SIZE) != SVN_SIZE) {
             err(1, "error reading CPU SVN");
@@ -128,7 +127,12 @@ int main(int argc, char** argv) {
         char cpu_svn_str[MRENCLAVE_SVN_KEY_PATH_LEN + SVN_SIZE * 2 + 1] = {0};
         sprintf(cpu_svn_str, "%s/", MRENCLAVE_SVN_KEY_PATH);
         for (size_t i = 0; i < SVN_SIZE; i++) {
-            sprintf(cpu_svn_str + strlen(cpu_svn_str), "%02x", cpu_svn[i]);
+            sprintf(cpu_svn_str + MRENCLAVE_SVN_KEY_PATH_LEN + 1 + i * 2, "%02x", cpu_svn[i]);
+        }
+        verify_key_exists("SGX mrenclave keys SVN", cpu_svn_str);
+        fail_write_key("SGX mrenclave keys SVN", cpu_svn_str);
+        for (size_t i = 0; i < SVN_SIZE; i++) {
+            sprintf(cpu_svn_str + MRENCLAVE_SVN_KEY_PATH_LEN + 1 + i * 2, "%02X", cpu_svn[i]);
         }
         verify_key_exists("SGX mrenclave keys SVN", cpu_svn_str);
         fail_write_key("SGX mrenclave keys SVN", cpu_svn_str);

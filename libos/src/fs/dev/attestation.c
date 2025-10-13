@@ -317,6 +317,7 @@ static bool key_name_exists_svn(struct libos_dentry* parent, const char* name) {
         log_warning("key_name_exists_svn: invalid key name format");
         return false;
     }
+
     return true;
 }
 
@@ -414,8 +415,11 @@ static int key_load_svn(struct libos_dentry* dent, char** out_data, size_t* out_
     }
     ret = 0;
 out:
-    if (key)
+    if (key) {
+        if (key->name)
+            free(key->name);
         free(key);
+    }
     return ret;
 }
 
@@ -492,6 +496,7 @@ static int init_sgx_attestation(struct pseudo_node* attestation, struct pseudo_n
                   "/dev/attestation/quote file");
         return 0;
     }
+
     log_debug("host is Linux-SGX and remote attestation type is '%s', adding "
               "/dev/attestation/quote file", g_pal_public_state->attestation_type);
     pseudo_add_str(attestation, "quote", &quote_load);

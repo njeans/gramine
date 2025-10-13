@@ -30,7 +30,7 @@
 
 #define CPU_SVN_SIZE 16
 
-#define OLD_TCB_FILE_URI_SUFFIX ".old.tcb"
+#define OLD_TCB_FILE_URI_SUFFIX ".old_tcb"
 
 typedef uint8_t cpu_svn_t[CPU_SVN_SIZE];
 
@@ -78,6 +78,11 @@ struct libos_encrypted_file {
  */
 int init_encrypted_files(void);
 
+/*
+ * \brief sets the default CPU SVN used for encrypted file keys.
+ *
+ * This is only used for testing.
+ */
 int set_cpu_svn(const cpu_svn_t *cpu_svn);
 
 /*
@@ -108,7 +113,7 @@ int list_encrypted_files_keys(int (*callback)(struct libos_encrypted_files_key* 
 int get_or_create_encrypted_files_key(const char* name, struct libos_encrypted_files_key** out_key);
 
 /*
- * \brief Retrieve a key.
+ * \brief Retrieve a key with a CPU SVN.
  *
  * Sets `*out_key` to a key with given name and CPU SVN. Creates a new key.
  *

@@ -1002,6 +1002,18 @@ int PalGetSpecialKey(const char* name, void* key, size_t* key_size);
  */
 int PalGetCPUSVN(void* cpu_svn, size_t* cpu_svn_size);
 
+/*!
+ * \brief Set CPU SVN to be used in subsequent calls to PalGetSpecialKey
+ *
+ * \param         cpu_svn       CPU SVN to use.
+ * \param         cpu_svn_size  Size in bytes of `cpu_svn`. Must be exactly 16B in case of SGX PAL.
+ *
+ * Set the CPU SVN to be used in subsequent calls to PalGetSpecialKey. Currently implemented
+ * for Linux-SGX PAL.
+ *
+ * If a given key is not supported by the current PAL host, the function will return
+ * PAL_ERROR_NOTIMPLEMENTED.
+ */
 int PalSetCPUSVN(const void* cpu_svn, size_t cpu_svn_size);
 
 /*!

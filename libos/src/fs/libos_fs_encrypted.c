@@ -622,6 +622,7 @@ out:
         if (new_key->name)
             free(new_key->name);
         free(new_key);
+    }
     return ret;
 }
 

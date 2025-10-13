@@ -1088,7 +1088,7 @@ Encrypted files
 ::
 
     fs.mounts = [
-      { type = "encrypted", path = "[PATH]", uri = "[URI]", key_name = "[KEY_NAME]", enable_recovery = [true|false] },
+      { type = "encrypted", path = "[PATH]", uri = "[URI]", key_name = "[KEY_NAME]", enable_recovery = [true|false], allow_tcb_migration = [true|false] },
     ]
 
     fs.insecure__keys.[KEY_NAME] = "[32-character hex value]"
@@ -1160,7 +1160,10 @@ or disabling of recovery for different mounted files or directories. Note that
 enabling this feature can negatively impact performance, as it writes to a
 second shadow file for later recovery purposes on each flush.
 
-// nerla todo document allow_tcb_migration parameter
+The ``allow_tcb_migration`` mount parameter (default: ``false``) determines whether
+the TCB migration feature is enabled for the mount. This feature allows sealed files to
+be migrated to latest CPU SVN version after applying microcode updates.  This feature
+is only valid for ``key_name`` of ``"_sgx_mrenclave"``.
 
 .. _untrusted-shared-memory:
 

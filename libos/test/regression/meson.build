@@ -124,6 +124,7 @@ tests = {
         'source': 'sealed_file.c',
         'c_args': '-DMODIFY_MRENCLAVE',  # see comment in the test's source
     },
+    'sealed_file_tcb_migration': {},
     'select': {},
     'send_handle': {},
     'shared_object': {
@@ -153,7 +154,6 @@ tests = {
     'syscall': {},
     'syscall_restart': {},
     'sysfs_common': {},
-    'tcb_migration': {},
     'tcp_ancillary': {},
     'tcp_einprogress': {},
     'tcp_ipv6_v6only': {},

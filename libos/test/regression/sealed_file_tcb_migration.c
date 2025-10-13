@@ -36,13 +36,15 @@ static void print_hex(const unsigned char *data, size_t len) {
 }
 
 static int file_exists(const char *path) {
+    printf("Checking existence of file: %s\n", path);
     return access(path, F_OK) == 0;
 }
 
 static int read_file_binary(const char *path, unsigned char *buffer, size_t size) {
+    printf("Reading from file: %s\n", path);
     FILE *f = fopen(path, "rb");
     if (!f) {
-        perror("fopen");
+        perror("read_file_binary fopen");
         return -1;
     }
     size_t n = fread(buffer, 1, size, f);
@@ -51,9 +53,10 @@ static int read_file_binary(const char *path, unsigned char *buffer, size_t size
 }
 
 static int write_file_binary(const char *path, const unsigned char *data, size_t len) {
+    printf("Writing to file: %s\n", path);
     FILE *f = fopen(path, "wb");
     if (!f) {
-        perror("fopen");
+        perror("write_file_binary fopen");
         return -1;
     }
     size_t n = fwrite(data, 1, len, f);
@@ -62,6 +65,7 @@ static int write_file_binary(const char *path, const unsigned char *data, size_t
 }
 
 static int read_file_text(const char *path, char *buffer, size_t size) {
+    printf("Reading from file: %s\n", path);
     FILE *f = fopen(path, "r");
     if (!f) {
         perror("fopen");
@@ -76,6 +80,7 @@ static int read_file_text(const char *path, char *buffer, size_t size) {
 }
 
 static int write_file_text(const char *path, const char *data) {
+    printf("Writing to file: %s\n", path);
     FILE *f = fopen(path, "w");
     if (!f) {
         perror("fopen");
@@ -88,9 +93,9 @@ static int write_file_text(const char *path, const char *data) {
 
 static int create_directories(const char *path) {
     char tmp[512];
+    printf("Creating directories for path: %s\n", path);
     strncpy(tmp, path, sizeof(tmp) - 1);
     tmp[sizeof(tmp) - 1] = '\0';
-    
     for (char *p = tmp + 1; *p; p++) {
         if (*p == '/') {
             *p = '\0';
@@ -105,12 +110,12 @@ int main() {
     unsigned char cpu_svn[SVN_SIZE];
     unsigned char current_cpu_svn[SVN_SIZE];
     unsigned char old_cpu_svn[SVN_SIZE];
-
+    printf("Starting TCB migration test\n");
     if (file_exists(TCB_MIGRATION_DONE_FLAG)) {
         printf("TCB migration already done, testing results\n");
 
         if (read_file_binary(CPU_SVN_PATH, cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error reading CPU SVN\n");
+            printf("Error reading CPU SVN\n");
             return 1;
         }
         printf("CPU SVN: ");
@@ -118,7 +123,7 @@ int main() {
         printf("\n");
 
         if (read_file_binary(CURRENT_CPU_SVN_PATH, current_cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error reading current CPU SVN\n");
+            printf("Error reading current CPU SVN\n");
             return 1;
         }
         printf("Current CPU SVN: ");
@@ -126,12 +131,12 @@ int main() {
         printf("\n");
 
         if (memcmp(cpu_svn, current_cpu_svn, SVN_SIZE) != 0) {
-            fprintf(stderr, "Error: CPU SVN does not match current CPU SVN\n");
+            printf("Error: CPU SVN does not match current CPU SVN\n");
             return 1;
         }
 
         if (read_file_binary(OLD_CPU_SVN_PATH, old_cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error reading old CPU SVN\n");
+            printf("Error reading old CPU SVN\n");
             return 1;
         }
         printf("Old CPU SVN: ");
@@ -139,7 +144,7 @@ int main() {
         printf("\n");
 
         if (memcmp(cpu_svn, old_cpu_svn, SVN_SIZE) == 0) {
-            fprintf(stderr, "Error: CPU SVN matches old CPU SVN\n");
+            printf("Error: CPU SVN matches old CPU SVN\n");
             return 1;
         }
 
@@ -151,17 +156,17 @@ int main() {
             printf("Reading sealed file: %s\n", filename);
 
             if (!file_exists(filename)) {
-                fprintf(stderr, "Error: Sealed file %s does not exist\n", filename);
+                printf("Error: Sealed file %s does not exist\n", filename);
                 return 1;
             }
 
-            char buffer[512];
+            char buffer[512] = {0};
             read_file_text(filename, buffer, sizeof(buffer));
 
             if (strcmp(buffer, expected) != 0) {
-                fprintf(stderr, "Error: Sealed file %s content does not match expected content\n", filename);
-                fprintf(stderr, "Expected: %s\n", expected);
-                fprintf(stderr, "Got: %s\n", buffer);
+                printf("%d Error: Sealed file %s content does not match expected content\n", i, filename);
+                printf("Expected: %s\n", expected);
+                printf("Got: %s\n", buffer);
                 return 1;
             }
             printf("Sealed file %s content matches expected content\n", filename);
@@ -173,7 +178,7 @@ int main() {
         printf("Performing CPU SVN downgrade to enable old key\n");
 
         if (read_file_binary(CPU_SVN_PATH, cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error reading CPU SVN\n");
+            printf("Error reading CPU SVN\n");
             return 1;
         }
         printf("CPU SVN: ");
@@ -194,17 +199,17 @@ int main() {
         printf("\n");
 
         if (write_file_binary(CPU_SVN_PATH, old_cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error writing CPU SVN\n");
+            printf("Error writing CPU SVN\n");
             return 1;
         }
 
         if (write_file_binary(CURRENT_CPU_SVN_PATH, cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error writing current CPU SVN\n");
+            printf("Error writing current CPU SVN\n");
             return 1;
         }
 
         if (write_file_binary(OLD_CPU_SVN_PATH, old_cpu_svn, SVN_SIZE) < 0) {
-            fprintf(stderr, "Error writing old CPU SVN\n");
+            printf("Error writing old CPU SVN\n");
             return 1;
         }
 
@@ -215,14 +220,14 @@ int main() {
             create_directories(filename);
 
             if (write_file_text(filename, content) < 0) {
-                fprintf(stderr, "Error writing sealed file: %s\n", filename);
+                printf("Error writing sealed file: %s\n", filename);
                 return 1;
             }
             printf("Wrote sealed file: %s using old key\n", filename);
         }
 
         if (write_file_text(TCB_MIGRATION_DONE_FLAG, "done") < 0) {
-            fprintf(stderr, "Error writing TCB migration flag\n");
+            printf("Error writing TCB migration flag\n");
             return 1;
         }
 

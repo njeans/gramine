@@ -1407,11 +1407,12 @@ class TC_40_FileSystem(RegressionTestCase):
                 for d in dirs:
                     shutil.rmtree(os.path.join(root, d))
 
-        stdout, _ = self.run_binary(['tcb_migration'])
+        stdout, _ = self.run_binary(['sealed_file_tcb_migration'])
         self.assertIn('TEST READY', stdout)
         assert(os.path.exists(os.path.join(info_path, 'old_cpu_svn')))
         shutil.copy(os.path.join(info_path, 'old_cpu_svn'), os.path.join(pf_path, 'gramine.tcb_info'))
-        stdout, _ = self.run_binary(['tcb_migration'])
+        assert(os.path.exists(os.path.join(pf_path, 'gramine.tcb_info')))
+        stdout, _ = self.run_binary(['sealed_file_tcb_migration'])
         self.assertIn('TEST OK', stdout)
 
     def test_060_synthetic(self):

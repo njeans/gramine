@@ -520,22 +520,40 @@ static int migrate_dir(const char * uri, struct libos_encrypted_files_key* old_k
 
             /* By the PAL convention, if a name ends with '/', it is a directory. */
             if (buf[end - 1] == '/') {
-                sub_entry_uri = alloc_concat(uri, -1, &buf[start], -1);
+                if (uri[strlen(uri) - 1] == '/')
+                    sub_entry_uri = alloc_concat(uri, -1, &buf[start], -1);
+                else
+                    sub_entry_uri = alloc_concat3(uri, -1, "/", 1, &buf[start], -1);
                 if (!sub_entry_uri) {
                     ret = -ENOMEM;
                     goto out;
                 }
+                log_debug("migrating directory %s", sub_entry_uri);
+
                 if ((ret = migrate_dir(sub_entry_uri, old_key, new_key)) < 0)
                     goto out;
             } else {
-                sub_entry_uri = alloc_concat3(URI_PREFIX_FILE, URI_PREFIX_FILE_LEN, uri + URI_PREFIX_DIR_LEN, -1, &buf[start], -1);
+                if (uri[strlen(uri) - 1] == '/')
+                    sub_entry_uri = alloc_concat3(URI_PREFIX_FILE, URI_PREFIX_FILE_LEN, uri + URI_PREFIX_DIR_LEN, -1, &buf[start], -1);
+                else {
+                    size_t sub_entry_uri_len = URI_PREFIX_FILE_LEN + strlen(uri) - URI_PREFIX_DIR_LEN + 1 + strlen(&buf[start]) + 1;
+                    sub_entry_uri = malloc(sub_entry_uri_len);
+                    if (!sub_entry_uri) {
+                        ret = -ENOMEM;
+                        goto out;
+                    }
+                    snprintf(sub_entry_uri, sub_entry_uri_len, "%s%s/%s", URI_PREFIX_FILE, uri + URI_PREFIX_DIR_LEN, &buf[start]);
+                }
                 if (!sub_entry_uri) {
                     ret = -ENOMEM;
                     goto out;
                 }
+                log_debug("migrating file %s", sub_entry_uri);
                 if ((ret = migrate_file(sub_entry_uri, old_key, new_key)) < 0)
                     goto out;
             }
+            free(sub_entry_uri);
+            sub_entry_uri = NULL;
             start = end + 1;
         }
     }
@@ -563,7 +581,6 @@ static int do_migrate(const char * uri, cpu_svn_t* old_cpu_svn, const char * key
     if (ret < 0) {
         goto out;
     }
-    // TODO call get_norm_path on uri
 
     PAL_STREAM_ATTR pal_attr;
     ret = PalStreamAttributesQuery(uri, &pal_attr);

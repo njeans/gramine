@@ -52,7 +52,8 @@ int PalGetSpecialKey(const char* name, void* key, size_t* key_size) {
     return _PalGetSpecialKey(name, key, key_size);
 }
 
-int PalGetSpecialKeyForSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key, size_t* key_size) {
+int PalGetSpecialKeyForSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
+                           size_t* key_size) {
     return _PalGetSpecialKeyForSVN(cpu_svn, cpu_svn_size, name, key, key_size);
 }
 

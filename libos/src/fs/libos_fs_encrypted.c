@@ -306,7 +306,7 @@ out:
 }
 
 static int encrypted_file_copy_contents(struct libos_encrypted_file* dest,
-                               struct libos_encrypted_file* src) {
+                                        struct libos_encrypted_file* src) {
     assert(dest->pf);
     assert(src->pf);
     int ret;
@@ -326,9 +326,10 @@ static int encrypted_file_copy_contents(struct libos_encrypted_file* dest,
     file_off_t remaining_read = buf_size;
     while (remaining_read > 0) {
         size_t read_size;
-        ret = encrypted_file_read(src, buf + (buf_size - remaining_read), remaining_read, buf_size - remaining_read, &read_size);
+        ret = encrypted_file_read(src, buf + (buf_size - remaining_read), remaining_read,
+                                  buf_size - remaining_read, &read_size);
         if (ret < 0) {
-            log_error("copy content: encrypted_file_read failed for %s: %d", src->uri , ret);
+            log_error("copy content: encrypted_file_read failed for %s: %d", src->uri, ret);
             goto out;
         }
         remaining_read -= read_size;
@@ -338,7 +339,8 @@ static int encrypted_file_copy_contents(struct libos_encrypted_file* dest,
     size_t remaining_write = buf_size;
     while (remaining_write > 0) {
         size_t write_size;
-        ret = encrypted_file_write(dest, buf + (buf_size - remaining_write), remaining_write, buf_size - remaining_write, &write_size);
+        ret = encrypted_file_write(dest, buf + (buf_size - remaining_write), remaining_write,
+                                   buf_size - remaining_write, &write_size);
         if (ret < 0) {
             log_error("copy content: encrypted_file_write failed for %s: %d", dest->uri, ret);
             goto out;
@@ -384,8 +386,10 @@ static int create_encrypted_files_key(const char* name,
         memcpy(&key->pf_key, &pf_key, sizeof(pf_key));
         key->is_set = true;
     } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-        log_warning("Special key \"%s\" is not supported by current PAL. Mounts using this key "
-                    "will not work.", name);
+        log_warning(
+            "Special key \"%s\" is not supported by current PAL. Mounts using this key "
+            "will not work.",
+            name);
         /* proceed without setting value */
     } else {
         log_error("PalGetSpecialKey(\"%s\") failed: %s", name, pal_strerror(ret));
@@ -423,10 +427,11 @@ static int parse_and_update_key(const char* key_name, const char* key_str) {
     return 0;
 }
 
-static int migrate_file(const char * uri, struct libos_encrypted_files_key* old_key, struct libos_encrypted_files_key* new_key) {
+static int migrate_file(const char* uri, struct libos_encrypted_files_key* old_key,
+                        struct libos_encrypted_files_key* new_key) {
     struct libos_encrypted_file* new_encrypted_file = NULL;
     struct libos_encrypted_file* old_encrypted_file = NULL;
-    char * old_file_uri = NULL;
+    char* old_file_uri = NULL;
     int ret = encrypted_file_open(uri, old_key, /*enable_recovery=*/false, &old_encrypted_file);
     if (ret < 0) {
         log_error("migrate: encrypted_file_open failed for %s: %d", uri, ret);
@@ -448,8 +453,9 @@ static int migrate_file(const char * uri, struct libos_encrypted_files_key* old_
         ret = pal_to_unix_errno(ret);
         goto out;
     }
-    
-    ret = encrypted_file_create(uri, pal_attr.share_flags, new_key, /*enable_recovery=*/false, &new_encrypted_file);
+
+    ret = encrypted_file_create(uri, pal_attr.share_flags, new_key, /*enable_recovery=*/false,
+                                &new_encrypted_file);
     if (ret < 0) {
         log_error("migrate: encrypted_file_create failed for %s: %d", uri, ret);
         goto out;
@@ -462,7 +468,7 @@ static int migrate_file(const char * uri, struct libos_encrypted_files_key* old_
     }
 
 out:
-    if (old_encrypted_file){
+    if (old_encrypted_file) {
         encrypted_file_put(old_encrypted_file);
         encrypted_file_destroy(old_encrypted_file);
     }
@@ -473,13 +479,14 @@ out:
     return ret;
 }
 
-static int migrate_dir(const char * uri, struct libos_encrypted_files_key* old_key, struct libos_encrypted_files_key* new_key) {
+static int migrate_dir(const char* uri, struct libos_encrypted_files_key* old_key,
+                       struct libos_encrypted_files_key* new_key) {
     char* sub_entry_uri = NULL;
     char* buf = NULL;
     size_t buf_size = READDIR_BUF_SIZE;
     PAL_HANDLE palhdl;
     int ret = PalStreamOpen(uri, PAL_ACCESS_RDONLY, /*share_flags=*/0, PAL_CREATE_NEVER,
-                        /*options=*/0, &palhdl);
+                            /*options=*/0, &palhdl);
     if (ret < 0) {
         return pal_to_unix_errno(ret);
     }
@@ -490,7 +497,7 @@ static int migrate_dir(const char * uri, struct libos_encrypted_files_key* old_k
     }
     while (true) {
         size_t read_size = buf_size;
-        ret = PalStreamRead(palhdl, /*offset=*/0, &read_size, buf);
+        ret              = PalStreamRead(palhdl, /*offset=*/0, &read_size, buf);
         if (ret < 0) {
             ret = pal_to_unix_errno(ret);
             goto out;
@@ -535,15 +542,18 @@ static int migrate_dir(const char * uri, struct libos_encrypted_files_key* old_k
                     goto out;
             } else {
                 if (uri[strlen(uri) - 1] == '/')
-                    sub_entry_uri = alloc_concat3(URI_PREFIX_FILE, URI_PREFIX_FILE_LEN, uri + URI_PREFIX_DIR_LEN, -1, &buf[start], -1);
+                    sub_entry_uri = alloc_concat3(URI_PREFIX_FILE, URI_PREFIX_FILE_LEN,
+                                                  uri + URI_PREFIX_DIR_LEN, -1, &buf[start], -1);
                 else {
-                    size_t sub_entry_uri_len = URI_PREFIX_FILE_LEN + strlen(uri) - URI_PREFIX_DIR_LEN + 1 + strlen(&buf[start]) + 1;
+                    size_t sub_entry_uri_len = URI_PREFIX_FILE_LEN + strlen(uri) -
+                                               URI_PREFIX_DIR_LEN + 1 + strlen(&buf[start]) + 1;
                     sub_entry_uri = malloc(sub_entry_uri_len);
                     if (!sub_entry_uri) {
                         ret = -ENOMEM;
                         goto out;
                     }
-                    snprintf(sub_entry_uri, sub_entry_uri_len, "%s%s/%s", URI_PREFIX_FILE, uri + URI_PREFIX_DIR_LEN, &buf[start]);
+                    snprintf(sub_entry_uri, sub_entry_uri_len, "%s%s/%s", URI_PREFIX_FILE,
+                             uri + URI_PREFIX_DIR_LEN, &buf[start]);
                 }
                 if (!sub_entry_uri) {
                     ret = -ENOMEM;
@@ -569,7 +579,7 @@ out:
     return ret;
 }
 
-static int do_migrate(const char * uri, cpu_svn_t* old_cpu_svn, const char * key_name) {
+static int do_migrate(const char* uri, cpu_svn_t* old_cpu_svn, const char* key_name) {
     struct libos_encrypted_files_key* old_key = NULL;
     struct libos_encrypted_files_key* new_key = NULL;
     char* dir_entry_uri = NULL;
@@ -596,7 +606,8 @@ static int do_migrate(const char * uri, cpu_svn_t* old_cpu_svn, const char * key
             ret = migrate_file(uri, old_key, new_key);
             break;
         case PAL_TYPE_DIR:
-            dir_entry_uri = alloc_concat(URI_PREFIX_DIR, URI_PREFIX_DIR_LEN, uri + URI_PREFIX_FILE_LEN, -1);
+            dir_entry_uri =
+                alloc_concat(URI_PREFIX_DIR, URI_PREFIX_DIR_LEN, uri + URI_PREFIX_FILE_LEN, -1);
             if (!dir_entry_uri) {
                 ret = -ENOMEM;
                 goto out;
@@ -604,8 +615,7 @@ static int do_migrate(const char * uri, cpu_svn_t* old_cpu_svn, const char * key
             ret = migrate_dir(dir_entry_uri, old_key, new_key);
             break;
         default:
-            log_warning("trying to access '%s' which is not an encrypted file or directory",
-                        uri);
+            log_warning("trying to access '%s' which is not an encrypted file or directory", uri);
             ret = -EACCES;
             goto out;
     }
@@ -672,7 +682,7 @@ int init_encrypted_files(void) {
     return 0;
 }
 
-int handle_tcb_migration(const char * uri, const char * key_name) {
+int handle_tcb_migration(const char* uri, const char* key_name) {
     PAL_HANDLE tcb_info_file_pal_handle = NULL;
     int ret;
 
@@ -697,8 +707,8 @@ int handle_tcb_migration(const char * uri, const char * key_name) {
     }
 
     log_debug("Opening TCB info file URI: %s", tcb_info_uri);
-    ret = PalStreamOpen(tcb_info_uri, PAL_ACCESS_RDWR, TCB_INFO_PERM_RW,
-                        PAL_CREATE_TRY, /*options=*/0, &tcb_info_file_pal_handle);
+    ret = PalStreamOpen(tcb_info_uri, PAL_ACCESS_RDWR, TCB_INFO_PERM_RW, PAL_CREATE_TRY,
+                        /*options=*/0, &tcb_info_file_pal_handle);
     free(tcb_info_uri);
     if (ret < 0) {
         log_warning("tcb_info PalStreamOpen failed: %s", pal_strerror(ret));
@@ -712,7 +722,7 @@ int handle_tcb_migration(const char * uri, const char * key_name) {
         ret = pal_to_unix_errno(ret);
         goto out;
     }
-    if ( pal_attr.pending_size == 0 ) {
+    if (pal_attr.pending_size == 0) {
         log_debug("tcb_info file is empty - writing current CPU SVN");
         ret = write_exact(tcb_info_file_pal_handle, current_cpu_svn, CPU_SVN_SIZE);
         if (ret < 0) {
@@ -726,7 +736,7 @@ int handle_tcb_migration(const char * uri, const char * key_name) {
             log_warning("reading from tcb_info file failed");
             goto out;
         }
-        if (memcmp(&current_cpu_svn, &saved_cpu_svn, sizeof(saved_cpu_svn)) != 0 ) {
+        if (memcmp(&current_cpu_svn, &saved_cpu_svn, sizeof(saved_cpu_svn)) != 0) {
             log_warning("CPU SVN has changed - doing TCB migration for %s", uri);
             ret = do_migrate(uri, &saved_cpu_svn, key_name);
         } else {
@@ -752,7 +762,7 @@ static struct libos_encrypted_files_key* get_key(const char* name) {
     return NULL;
 }
 
-int set_cpu_svn(const cpu_svn_t *cpu_svn) {
+int set_cpu_svn(const cpu_svn_t* cpu_svn) {
     int ret;
     pf_key_t pf_key;
     size_t size = sizeof(pf_key);
@@ -763,8 +773,10 @@ int set_cpu_svn(const cpu_svn_t *cpu_svn) {
             return -EINVAL;
         }
     } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-        log_warning("Special key \"%s\" is not supported by current PAL. Mounts using this key "
-                    "will not work.", name);
+        log_warning(
+            "Special key \"%s\" is not supported by current PAL. Mounts using this key "
+            "will not work.",
+            name);
         return -ENOSYS;
     } else {
         log_error("PalGetSpecialKeyForSVN(\"%s\") failed: %s", name, pal_strerror(ret));
@@ -866,8 +878,10 @@ int get_or_create_encrypted_files_key(const char* name,
             memcpy(&key->pf_key, &pf_key, sizeof(pf_key));
             key->is_set = true;
         } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-            log_debug("Special key \"%s\" is not supported by current PAL. Mounts using this key "
-                      "will not work.", name);
+            log_debug(
+                "Special key \"%s\" is not supported by current PAL. Mounts using this key "
+                "will not work.",
+                name);
             /* proceed without setting value */
         } else {
             log_error("PalGetSpecialKey(\"%s\") failed: %s", name, pal_strerror(ret));
@@ -884,7 +898,7 @@ out:
 }
 
 int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
-                                      struct libos_encrypted_files_key** out_key) {
+                                       struct libos_encrypted_files_key** out_key) {
     if (name[0] != '_') {
         return -EINVAL;
     }
@@ -917,8 +931,10 @@ int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
         memcpy(&key->pf_key, &pf_key, sizeof(pf_key));
         key->is_set = true;
     } else if (ret == PAL_ERROR_NOTIMPLEMENTED) {
-        log_debug("Special key \"%s\" is not supported by current PAL. Mounts using this key "
-                    "will not work.", name);
+        log_debug(
+            "Special key \"%s\" is not supported by current PAL. Mounts using this key "
+            "will not work.",
+            name);
         /* proceed without setting value */
     } else {
         log_error("PalGetSpecialKeyForSVN(\"%s\") failed: %s", name, pal_strerror(ret));

@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #define SEALED_DATA_DIR "/tmp_tcb/data"
 #define CPU_SVN_PATH "/dev/attestation/cpu_svn"
@@ -18,31 +18,32 @@
 #define SVN_SIZE 16
 
 typedef struct {
-    const char *path;
-    const char *content;
+    const char* path;
+    const char* content;
 } sealed_file_t;
 
 sealed_file_t sealed_files[] = {
     {SEALED_DATA_DIR "/helloworld.txt", "Hello World!\n"},
     {SEALED_DATA_DIR "/subdir/helloworld.txt", "Hello World!\n from a subdirectory"},
-    {SEALED_DATA_DIR "/subdir1/subdir2/helloworld.txt", "Hello World!\n from a nested subdirectory"},
+    {SEALED_DATA_DIR "/subdir1/subdir2/helloworld.txt",
+     "Hello World!\n from a nested subdirectory"},
 };
 int num_sealed_files = 3;
 
-static void print_hex(const unsigned char *data, size_t len) {
+static void print_hex(const unsigned char* data, size_t len) {
     for (size_t i = 0; i < len; i++) {
         printf("%02x", data[i]);
     }
 }
 
-static int file_exists(const char *path) {
+static int file_exists(const char* path) {
     printf("Checking existence of file: %s\n", path);
     return access(path, F_OK) == 0;
 }
 
-static int read_file_binary(const char *path, unsigned char *buffer, size_t size) {
+static int read_file_binary(const char* path, unsigned char* buffer, size_t size) {
     printf("Reading from file: %s\n", path);
-    FILE *f = fopen(path, "rb");
+    FILE* f = fopen(path, "rb");
     if (!f) {
         perror("read_file_binary fopen");
         return -1;
@@ -52,9 +53,9 @@ static int read_file_binary(const char *path, unsigned char *buffer, size_t size
     return (int)n;
 }
 
-static int write_file_binary(const char *path, const unsigned char *data, size_t len) {
+static int write_file_binary(const char* path, const unsigned char* data, size_t len) {
     printf("Writing to file: %s\n", path);
-    FILE *f = fopen(path, "wb");
+    FILE* f = fopen(path, "wb");
     if (!f) {
         perror("write_file_binary fopen");
         return -1;
@@ -64,9 +65,9 @@ static int write_file_binary(const char *path, const unsigned char *data, size_t
     return (int)n == (int)len ? 0 : -1;
 }
 
-static int read_file_text(const char *path, char *buffer, size_t size) {
+static int read_file_text(const char* path, char* buffer, size_t size) {
     printf("Reading from file: %s\n", path);
-    FILE *f = fopen(path, "r");
+    FILE* f = fopen(path, "r");
     if (!f) {
         perror("fopen");
         return -1;
@@ -79,9 +80,9 @@ static int read_file_text(const char *path, char *buffer, size_t size) {
     return n;
 }
 
-static int write_file_text(const char *path, const char *data) {
+static int write_file_text(const char* path, const char* data) {
     printf("Writing to file: %s\n", path);
-    FILE *f = fopen(path, "w");
+    FILE* f = fopen(path, "w");
     if (!f) {
         perror("fopen");
         return -1;
@@ -91,12 +92,12 @@ static int write_file_text(const char *path, const char *data) {
     return (int)n == (int)strlen(data) ? 0 : -1;
 }
 
-static int create_directories(const char *path) {
+static int create_directories(const char* path) {
     char tmp[512];
     printf("Creating directories for path: %s\n", path);
     strncpy(tmp, path, sizeof(tmp) - 1);
     tmp[sizeof(tmp) - 1] = '\0';
-    for (char *p = tmp + 1; *p; p++) {
+    for (char* p = tmp + 1; *p; p++) {
         if (*p == '/') {
             *p = '\0';
             mkdir(tmp, 0755);
@@ -150,8 +151,8 @@ int main() {
 
         printf("Sealed files:\n");
         for (int i = 0; i < num_sealed_files; i++) {
-            const char *filename = sealed_files[i].path;
-            const char *expected = sealed_files[i].content;
+            const char* filename = sealed_files[i].path;
+            const char* expected = sealed_files[i].content;
 
             printf("Reading sealed file: %s\n", filename);
 
@@ -164,7 +165,8 @@ int main() {
             read_file_text(filename, buffer, sizeof(buffer));
 
             if (strcmp(buffer, expected) != 0) {
-                printf("%d Error: Sealed file %s content does not match expected content\n", i, filename);
+                printf("%d Error: Sealed file %s content does not match expected content\n", i,
+                       filename);
                 printf("Expected: %s\n", expected);
                 printf("Got: %s\n", buffer);
                 return 1;
@@ -188,7 +190,8 @@ int main() {
         memcpy(old_cpu_svn, cpu_svn, SVN_SIZE);
         for (int i = 0; i < (int)SVN_SIZE - 1; i++) {
             if (cpu_svn[i + 1] == 0x00 || i + 1 == (int)SVN_SIZE - 1) {
-                printf("Decreasing byte %d of cpu_svn from %d to %d\n", i, cpu_svn[i], cpu_svn[i] - 1);
+                printf("Decreasing byte %d of cpu_svn from %d to %d\n", i, cpu_svn[i],
+                       cpu_svn[i] - 1);
                 old_cpu_svn[i] = cpu_svn[i] - 1;
                 break;
             }
@@ -214,8 +217,8 @@ int main() {
         }
 
         for (int i = 0; i < num_sealed_files; i++) {
-            const char *filename = sealed_files[i].path;
-            const char *content = sealed_files[i].content;
+            const char* filename = sealed_files[i].path;
+            const char* content  = sealed_files[i].content;
 
             create_directories(filename);
 

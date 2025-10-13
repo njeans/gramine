@@ -99,9 +99,9 @@ static void fail_write_key(const char* desc, const char* path) {
         errx(1, "%s: writing to %s unexpectedly succeeded", desc, path);
 }
 
-static int read_file_binary(const char *path, unsigned char *buffer, size_t size) {
+static int read_file_binary(const char* path, unsigned char* buffer, size_t size) {
     printf("Reading from file: %s\n", path);
-    FILE *f = fopen(path, "rb");
+    FILE* f = fopen(path, "rb");
     if (!f) {
         perror("read_file_binary fopen");
         return -1;

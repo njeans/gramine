@@ -83,7 +83,7 @@ int init_encrypted_files(void);
  *
  * This is only used for testing.
  */
-int set_cpu_svn(const cpu_svn_t *cpu_svn);
+int set_cpu_svn(const cpu_svn_t* cpu_svn);
 
 /*
  * \brief Retrieve a key.
@@ -118,7 +118,8 @@ int get_or_create_encrypted_files_key(const char* name, struct libos_encrypted_f
  * Sets `*out_key` to a key with given name and CPU SVN. Creates a new key.
  *
  */
-int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn, struct libos_encrypted_files_key** out_key);
+int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
+                                       struct libos_encrypted_files_key** out_key);
 
 /*
  * \brief Read value of given key.
@@ -209,4 +210,4 @@ int encrypted_file_set_size(struct libos_encrypted_file* enc, file_off_t size);
 
 int parse_pf_key(const char* key_str, pf_key_t* pf_key);
 
-int handle_tcb_migration(const char * uri, const char * key_name);
+int handle_tcb_migration(const char* uri, const char* key_name);

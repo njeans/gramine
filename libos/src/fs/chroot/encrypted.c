@@ -74,9 +74,10 @@ static int chroot_encrypted_mount(struct libos_mount_params* params, void** moun
             }
 
         } else {
-            log_warning("TCB migration is only supported for keys named %s, ignoring "
-                        "allow_tcb_migration for %s",
-                        PAL_KEY_NAME_SGX_MRENCLAVE, params->uri);
+            log_warning(
+                "TCB migration is only supported for keys named %s, ignoring "
+                "allow_tcb_migration for %s",
+                PAL_KEY_NAME_SGX_MRENCLAVE, params->uri);
         }
     }
     struct libos_encrypted_files_key* key;

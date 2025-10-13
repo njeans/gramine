@@ -269,7 +269,8 @@ static int mount_one_nonroot(toml_table_t* mount, const char* prefix) {
         goto out;
     }
 
-    ret = toml_bool_in(mount, "allow_tcb_migration", /*defaultval=*/false, &mount_allow_tcb_migration);
+    ret = toml_bool_in(mount, "allow_tcb_migration", /*defaultval=*/false,
+                       &mount_allow_tcb_migration);
     if (ret < 0) {
         log_error("Cannot parse '%s.allow_tcb_migration'", prefix);
         ret = -EINVAL;

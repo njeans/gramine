@@ -269,7 +269,7 @@ static int cpu_svn_load(struct libos_dentry* dent, char** out_data, size_t* out_
         return pal_to_unix_errno(ret);
     }
 
-    char *str = calloc(1, cpu_svn_size);
+    char* str = calloc(1, cpu_svn_size);
 
     if (!str)
         return -ENOMEM;
@@ -309,11 +309,12 @@ static bool key_name_exists(struct libos_dentry* parent, const char* name) {
 static bool key_name_exists_svn(struct libos_dentry* parent, const char* name) {
     __UNUSED(parent);
     if (strlen(name) != 2 * sizeof(cpu_svn_t)) {
-        log_warning("key_name_exists_svn: invalid key name length %zu of %s, expected %zu", strlen(name), name, 2 * sizeof(cpu_svn_t));
+        log_warning("key_name_exists_svn: invalid key name length %zu of %s, expected %zu",
+                    strlen(name), name, 2 * sizeof(cpu_svn_t));
         return false;
     }
     cpu_svn_t cpu_svn;
-    if (!hex2bytes((char *)name, strlen(name), &cpu_svn, sizeof(cpu_svn_t))) {
+    if (!hex2bytes((char*)name, strlen(name), &cpu_svn, sizeof(cpu_svn_t))) {
         log_warning("key_name_exists_svn: invalid key name format");
         return false;
     }
@@ -378,7 +379,7 @@ static int key_load_svn(struct libos_dentry* dent, char** out_data, size_t* out_
     }
     cpu_svn_t cpu_svn;
 
-    if (!hex2bytes((char *)dent->name, strlen(dent->name), &cpu_svn, sizeof(cpu_svn_t))) {
+    if (!hex2bytes((char*)dent->name, strlen(dent->name), &cpu_svn, sizeof(cpu_svn_t))) {
         log_warning("key_name_exists_svn: invalid key name format");
         return false;
     }
@@ -486,7 +487,8 @@ static int init_sgx_attestation(struct pseudo_node* attestation, struct pseudo_n
     pseudo_add_str(keys, PAL_KEY_NAME_SGX_MRSIGNER, &key_load);
 
     struct pseudo_node* keys_svn = pseudo_add_dir(keys, "svn");
-    struct pseudo_node* keys_svn_mrenclave_key = pseudo_add_dir(keys_svn, PAL_KEY_NAME_SGX_MRENCLAVE);
+    struct pseudo_node* keys_svn_mrenclave_key =
+        pseudo_add_dir(keys_svn, PAL_KEY_NAME_SGX_MRENCLAVE);
     struct pseudo_node* key_cpu_svn = pseudo_add_str(keys_svn_mrenclave_key, NULL, &key_load_svn);
     key_cpu_svn->name_exists = &key_name_exists_svn;
     key_cpu_svn->list_names = &key_list_names_svn;

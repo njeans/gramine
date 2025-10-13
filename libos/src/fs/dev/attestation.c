@@ -481,7 +481,7 @@ static int init_sgx_attestation(struct pseudo_node* attestation, struct pseudo_n
     pseudo_add_str(keys, PAL_KEY_NAME_SGX_MRENCLAVE, &key_load);
     pseudo_add_str(keys, PAL_KEY_NAME_SGX_MRSIGNER, &key_load);
 
-    struct pseudo_node* keys_svn = pseudo_add_dir(attestation, "keys_svn");
+    struct pseudo_node* keys_svn = pseudo_add_dir(keys, "svn");
     struct pseudo_node* keys_svn_mrenclave_key = pseudo_add_dir(keys_svn, PAL_KEY_NAME_SGX_MRENCLAVE);
     struct pseudo_node* key_cpu_svn = pseudo_add_str(keys_svn_mrenclave_key, NULL, &key_load_svn);
     key_cpu_svn->name_exists = &key_name_exists_svn;

@@ -218,7 +218,7 @@ int main() {
 
         for (int i = 0; i < num_sealed_files; i++) {
             const char* filename = sealed_files[i].path;
-            const char* content  = sealed_files[i].content;
+            const char* content = sealed_files[i].content;
 
             create_directories(filename);
 

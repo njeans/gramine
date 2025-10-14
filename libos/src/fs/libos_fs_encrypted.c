@@ -497,7 +497,7 @@ static int migrate_dir(const char* uri, struct libos_encrypted_files_key* old_ke
     }
     while (true) {
         size_t read_size = buf_size;
-        ret              = PalStreamRead(palhdl, /*offset=*/0, &read_size, buf);
+        ret = PalStreamRead(palhdl, /*offset=*/0, &read_size, buf);
         if (ret < 0) {
             ret = pal_to_unix_errno(ret);
             goto out;

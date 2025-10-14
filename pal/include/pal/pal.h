@@ -1032,7 +1032,7 @@ int PalSetCPUSVN(const void* cpu_svn, size_t cpu_svn_size);
  * If a given key is not supported by the current PAL host, the function will return
  * PAL_ERROR_NOTIMPLEMENTED.
  */
-int PalGetSpecialKeyForSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
+int PalGetSpecialKeyForCPUSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
                            size_t* key_size);
 
 #define PAL_KEY_NAME_SGX_MRENCLAVE "_sgx_mrenclave"

@@ -767,7 +767,7 @@ int set_cpu_svn(const cpu_svn_t* cpu_svn) {
     pf_key_t pf_key;
     size_t size = sizeof(pf_key);
     char name[] = PAL_KEY_NAME_SGX_MRENCLAVE;
-    ret = PalGetSpecialKeyForSVN(cpu_svn, sizeof(*cpu_svn), name, &pf_key, &size);
+    ret = PalGetSpecialKeyForCPUSVN(cpu_svn, sizeof(*cpu_svn), name, &pf_key, &size);
     if (ret == 0) {
         if (size != sizeof(pf_key)) {
             return -EINVAL;
@@ -779,7 +779,7 @@ int set_cpu_svn(const cpu_svn_t* cpu_svn) {
             name);
         return -ENOSYS;
     } else {
-        log_error("PalGetSpecialKeyForSVN(\"%s\") failed: %s", name, pal_strerror(ret));
+        log_error("PalGetSpecialKeyForCPUSVN(\"%s\") failed: %s", name, pal_strerror(ret));
         return pal_to_unix_errno(ret);
     }
     
@@ -919,11 +919,11 @@ int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
 
     pf_key_t pf_key;
     size_t size = sizeof(pf_key);
-    ret = PalGetSpecialKeyForSVN(cpu_svn, sizeof(*cpu_svn), name, &pf_key, &size);
+    ret = PalGetSpecialKeyForCPUSVN(cpu_svn, sizeof(*cpu_svn), name, &pf_key, &size);
 
     if (ret == 0) {
         if (size != sizeof(pf_key)) {
-            log_debug("PalGetSpecialKeyForSVN(\"%s\") returned wrong size: %zu", name, size);
+            log_debug("PalGetSpecialKeyForCPUSVN(\"%s\") returned wrong size: %zu", name, size);
             ret = -EINVAL;
             goto out;
         }
@@ -937,7 +937,7 @@ int create_encrypted_files_key_for_svn(const char* name, cpu_svn_t* cpu_svn,
             name);
         /* proceed without setting value */
     } else {
-        log_error("PalGetSpecialKeyForSVN(\"%s\") failed: %s", name, pal_strerror(ret));
+        log_error("PalGetSpecialKeyForCPUSVN(\"%s\") failed: %s", name, pal_strerror(ret));
         ret = pal_to_unix_errno(ret);
         goto out;
     }

@@ -1163,7 +1163,10 @@ second shadow file for later recovery purposes on each flush.
 The ``allow_tcb_migration`` mount parameter (default: ``false``) determines whether
 the TCB migration feature is enabled for the mount. This feature allows sealed files to
 be migrated to latest CPU SVN version after applying microcode updates.  This feature
-is only valid for ``key_name`` of ``"_sgx_mrenclave"``.
+is only valid for ``key_name`` of ``"_sgx_mrenclave"``. Enabling this feature can
+negatively impact security, as it allow the enclave to unseal files that were created
+with an old potentially vulnerable CPU SVN version. It is the responsibility of the 
+app developer to verify the integrity of the sealed files if this feature is enabled.
 
 .. _untrusted-shared-memory:
 

@@ -50,7 +50,7 @@ PalDebugDescribeLocation
 PalAttestationReport
 PalAttestationQuote
 PalGetSpecialKey
-PalGetSpecialKeyForSVN
+PalGetSpecialKeyForCPUSVN
 PalGetCPUSVN
 PalSetCPUSVN
 PalDebugLog

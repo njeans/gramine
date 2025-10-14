@@ -364,7 +364,7 @@ random bits, to obtain an attestation report and quote, etc.
 .. doxygenfunction:: PalGetSpecialKey
    :project: pal
 
-.. doxygenfunction:: PalGetSpecialKeyForSVN
+.. doxygenfunction:: PalGetSpecialKeyForCPUSVN
    :project: pal
    
 .. doxygenfunction:: PalGetCPUSVN

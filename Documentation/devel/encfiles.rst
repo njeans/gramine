@@ -549,4 +549,7 @@ Additional details
   the CPU SVN has changed after applying microcode updates. The current CPU SVN 
   is stored in the mount directory in a file named ``gramine.tcb_info``. On 
   startup if the CPU SVN has changed, Gramine will unseal the files using the 
-  old CPU SVN and reseal them with the current CPU SVN.
+  old CPU SVN and reseal them with the current CPU SVN. This feature can negatively
+  impact integrity of files, as it allows files from a platform with a lower 
+  security level to be used. It is recommended to use this feature only in controlled
+  environments where the security implications are understood.

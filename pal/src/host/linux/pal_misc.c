@@ -80,7 +80,7 @@ int _PalGetSpecialKey(const char* name, void* key, size_t* key_size) {
     return PAL_ERROR_NOTIMPLEMENTED;
 }
 
-int _PalGetSpecialKeyForCPUSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
+int _PalGetSpecialKeyForSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
                             size_t* key_size) {
     __UNUSED(cpu_svn);
     __UNUSED(cpu_svn_size);

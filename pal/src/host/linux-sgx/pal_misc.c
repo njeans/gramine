@@ -753,7 +753,7 @@ int _PalGetSpecialKey(const char* name, void* key, size_t* key_size) {
     return 0;
 }
 
-int _PalGetSpecialKeyForCPUSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
+int _PalGetSpecialKeyForSVN(const void* cpu_svn, size_t cpu_svn_size, const char* name, void* key,
                             size_t* key_size) {
     sgx_key_128bit_t sgx_key;
 

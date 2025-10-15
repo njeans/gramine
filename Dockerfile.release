@@ -23,7 +23,7 @@ RUN apt-get install -y libsgx-enclave-common-dev libsgx-dcap-ql-dev libsgx-dcap-
 
 COPY . /gramine
 WORKDIR /gramine
-RUN meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled  --werror 
+RUN meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dtests=enabled --werror 
 RUN chmod +x /gramine/subprojects/mbedtls-3.6.3/compile.sh
 RUN ninja -C build/
 RUN ninja -C build/ install

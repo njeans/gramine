@@ -32,3 +32,8 @@ RUN chmod +x /usr/local/bin/gramine-manifest-check
 RUN chmod +x /usr/local/bin/gramine-sgx-sign
 RUN chmod +x /usr/local/bin/gramine-sgx-gen-private-key
 RUN chmod +x /usr/local/bin/gramine-test
+
+RUN gramine-sgx-gen-private-key -f
+WORKDIR /gramine/libos/test/regression
+ENTRYPOINT [ "gramine-test" ]
+CMD ["--sgx", "pytest", "-v", "-k", "test_054_sealed_file_tcb_migration"]
